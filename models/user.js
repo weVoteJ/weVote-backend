@@ -16,7 +16,7 @@ const userSchema = new Schema({
   //       value: { type: Number, required: true },
   //     },
   //   ],
-  votesCount: { type: Number, required: true },
+  // votesCount: { type: Number, required: true },
   votes: [
     {
       objectId: { type: mongoose.Types.ObjectId, required: true, ref: 'Vote' },

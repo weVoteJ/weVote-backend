@@ -78,7 +78,6 @@ const signup = async (req, res, next) => {
     email,
     password: hashedPassword,
     country,
-    votesCount: 0,
     posts: [],
     votes: [],
   });
