@@ -1,52 +1,68 @@
 const mongoose = require('mongoose');
 
 const HttpError = require('../models/http-error');
-const Vote = require('../models/vote');
+const Post = require('../models/post');
 const User = require('../models/user');
 
-const createVote = async (req, res, next) => {
-  const { title, description, country, voteLeftValue, voteRightValue } =
-    req.body;
+const castVote = async (req, res, next) => {
+  const { isVoteLeft } = req.body;
+  const voteId = req.params.pid;
 
-  const createdVote = new Vote({
-    title,
-    description,
-    country,
-    voteLeftValue,
-    voteRightValue,
-    voteLeft: 0,
-    voteRight: 0,
-    creator: '651ef4700a9d7dbd4c13eb61',
-  });
+  let post;
+  try {
+    post = await Post.findById(voteId);
+  } catch (err) {
+    const error = new HttpError('Vote action failed, please try again.', 500);
+    return next(error);
+  }
+
+  if (!post) {
+    const error = new HttpError('Could not find post for provided id', 404);
+    return next(error);
+  }
 
   let user;
   try {
-    // user = await User.findById(req.userData.userId);
     user = await User.findById('651ef4700a9d7dbd4c13eb61');
   } catch (err) {
-    const error = new HttpError('Creating place failed, please try again', 500);
+    const error = new HttpError('Vote action failed, please try again.', 500);
     return next(error);
   }
 
   if (!user) {
-    const error = new HttpError('Could not find user for provided id', 404);
+    const error = new HttpError('Could not find user', 404);
     return next(error);
   }
+
+  let voteExist;
+  try {
+    voteExist = await User.findOne({
+      'votes._id': '651f6b5f98dc9a95c17bab64',
+    }); // Use 'await' here
+  } catch (err) {}
+
+  if (voteExist) {
+    const error = new HttpError('This ID has been voted', 500);
+    return next(error);
+  }
+
+  isVoteLeft ? post.voteLeft++ : post.voteRight++;
 
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    await createdVote.save({ session: sess });
-    user.posts.push(createdVote);
+    user.votes.push(post);
     await user.save({ session: sess });
+    post.voters.push({ objectId: user, voteValue: isVoteLeft });
+    await post.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
-    const error = new HttpError('Creating place failed, please try again', 500);
+    const error = new HttpError('Something went wrong, could not vote', 500);
     return next(error);
   }
 
-  res.status(201).json({ vote: createdVote.toObject({ getters: true }) });
+  res.status(200).json({ post: post.toObject({ getters: true }) });
 };
 
-exports.createVote = createVote;
+exports.castVote = castVote;

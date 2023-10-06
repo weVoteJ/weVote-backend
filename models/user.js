@@ -8,8 +8,8 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, minlength: 6 },
   country: { type: String, required: true },
+  posts: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Post' }],
   // image: { type: String, required: true },
-  posts: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Place' }],
   //   votes: [
   //     {
   //       objectId: { type: mongoose.Types.ObjectId, required: true, ref: 'Vote' },
@@ -19,7 +19,7 @@ const userSchema = new Schema({
   // votesCount: { type: Number, required: true },
   votes: [
     {
-      objectId: { type: mongoose.Types.ObjectId, required: true, ref: 'Vote' },
+      objectId: { type: mongoose.Types.ObjectId, ref: 'Post' },
     },
   ],
 });

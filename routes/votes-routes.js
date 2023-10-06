@@ -5,6 +5,6 @@ const votesControllers = require('../controllers/votes-controllers');
 
 const router = express.Router();
 
-router.post('/', votesControllers.createVote);
+router.patch('/:pid', votesControllers.castVote);
 
 module.exports = router;
